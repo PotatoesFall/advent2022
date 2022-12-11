@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fs};
 
 fn main() {
-    let input = fs::read_to_string("input/day7.txt").expect("unable to read file");
+    let input = fs::read_to_string("input/day07.txt").expect("unable to read file");
 
     let root_dir = parse_input(input);
 

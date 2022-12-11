@@ -14,7 +14,7 @@ fn main() {
 }
 
 fn parse_moves() -> Vec<Move> {
-    let input = fs::read_to_string("input/day5.txt").expect("unable to read file");
+    let input = fs::read_to_string("input/day05.txt").expect("unable to read file");
 
     input
         .split("\n")

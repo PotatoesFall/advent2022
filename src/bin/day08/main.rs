@@ -1,8 +1,8 @@
 use std::{collections::HashSet, fs};
 
 fn main() {
-    // let input = fs::read_to_string("input/day8-test.txt")
-    let input = fs::read_to_string("input/day8.txt")
+    // let input = fs::read_to_string("input/day08-test.txt")
+    let input = fs::read_to_string("input/day08.txt")
         .expect("unable to read file")
         .split("\n")
         .map(|line| line.chars().collect::<Vec<char>>())

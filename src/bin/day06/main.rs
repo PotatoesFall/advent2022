@@ -1,7 +1,7 @@
 use std::fs;
 
 fn main() {
-    let input = fs::read_to_string("input/day6.txt").expect("unable to read file");
+    let input = fs::read_to_string("input/day06.txt").expect("unable to read file");
 
     println!("Part 1 - {}", solve(&input, 4));
     println!("Part 2 - {}", solve(&input, 14));

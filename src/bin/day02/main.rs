@@ -72,7 +72,7 @@ fn make_point_matrix() -> HashMap<(Shape, Shape), i64> {
 }
 
 fn main() {
-    let input = fs::read_to_string("input/day2.txt").expect("unable to read file");
+    let input = fs::read_to_string("input/day02.txt").expect("unable to read file");
 
     let point_matrix = make_point_matrix();
 

@@ -1,7 +1,7 @@
 use std::fs;
 
 fn main() {
-    let input = fs::read_to_string("input/day1.txt").expect("unable to read file");
+    let input = fs::read_to_string("input/day01.txt").expect("unable to read file");
 
     let mut inventories = Vec::new();
     for block in input.split("\n\n") {

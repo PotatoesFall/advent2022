@@ -1,7 +1,7 @@
 use std::{collections::HashSet, fs};
 
 fn main() {
-    let input_str = fs::read_to_string("input/day9.txt").expect("failed to read file");
+    let input_str = fs::read_to_string("input/day09.txt").expect("failed to read file");
     
     // parse into a direction and number of fields moved
     let input = parse_input(&input_str);
