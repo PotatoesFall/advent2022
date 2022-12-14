@@ -1,8 +1,9 @@
-use std::fs;
+use std::{fs, time::Instant};
 
 fn main() {
     // let input = fs::read_to_string("input/day10-test.txt").unwrap();
     let input = fs::read_to_string("input/day10.txt").unwrap();
+    let time = Instant::now();
 
     let mut register_values = Vec::new();
     register_values.push(0); // we start at 1 so write any value at index 0
@@ -45,11 +46,13 @@ fn main() {
         for col in 0..40 {
             // if distance from center is 1 or less, draw the #
             if (register_values[40 * row + col + 1] - col as i64).abs() <= 1 {
-                print!("#");
+                print!("█");
             } else {
-                print!(".");
+                print!("·");
             }
         }
         println!();
     }
+
+    println!("Total execution time: {:?}", time.elapsed());
 }

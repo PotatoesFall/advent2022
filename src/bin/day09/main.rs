@@ -1,16 +1,18 @@
-use std::{collections::HashSet, fs};
+use std::{collections::HashSet, fs, time::Instant};
 
 fn main() {
     let input_str = fs::read_to_string("input/day09.txt").expect("failed to read file");
-    
+
+    let time = Instant::now();
+
     // parse into a direction and number of fields moved
     let input = parse_input(&input_str);
 
     let mut knots = vec![(0, 0); 10];
 
     // track all positions of the second and last knot
-    let mut visited_1 = HashSet::new();
-    let mut visited_2 = HashSet::new();
+    let mut visited_1 = HashSet::with_capacity(10000);
+    let mut visited_2 = HashSet::with_capacity(10000);
 
     // also record starting position
     visited_1.insert(knots[1]);
@@ -35,28 +37,25 @@ fn main() {
         }
     }
 
-
     println!("Part 1 - {}", visited_1.len());
     println!("Part 2 - {}", visited_2.len());
+    println!("Total execution time: {:?}", time.elapsed());
 }
 
-fn parse_input(input: &String) -> Vec<((i64, i64), i64)> {
-    input
-        .split("\n")
-        .map(|line| {
-            let mut ch = line.chars();
-            let direction = match ch.next().unwrap() {
-                'U' => (0, 1),
-                'D' => (0, -1),
-                'L' => (-1, 0),
-                'R' => (1, 0),
-                _ => panic!("unexpected direction character"),
-            };
-            let distance = ch.skip(1).collect::<String>().parse::<i64>().unwrap();
+fn parse_input<'a>(input: &'a String) -> impl Iterator<Item = ((i64, i64), i64)> + 'a {
+    input.split("\n").map(|line| {
+        let mut ch = line.chars();
+        let direction: (i64, i64) = match ch.next().unwrap() {
+            'U' => (0, 1),
+            'D' => (0, -1),
+            'L' => (-1, 0),
+            'R' => (1, 0),
+            _ => panic!("unexpected direction character"),
+        };
+        let distance = ch.skip(1).collect::<String>().parse::<i64>().unwrap();
 
-            (direction, distance)
-        })
-        .collect()
+        (direction, distance)
+    })
 }
 
 fn move_tail(h: &(i64, i64), t: &mut (i64, i64)) {

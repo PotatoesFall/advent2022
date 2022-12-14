@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, time::Instant};
 
 #[derive(Debug, Clone)]
 struct Monkey {
@@ -13,10 +13,14 @@ fn main() {
     println!("Day 11");
 
     let input = fs::read_to_string("input/day11.txt").unwrap();
+    let t = Instant::now();
+
     let monkeys = parse_monkeys(input);
 
     println!("Part 1 - {}", part_1(monkeys.clone()));
     println!("Part 2 - {}", part_2(monkeys.clone()));
+
+    println!("Total execution time: {:?}", t.elapsed());
 }
 
 fn parse_monkeys(input: String) -> [Monkey; 8] {
