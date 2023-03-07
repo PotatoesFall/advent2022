@@ -2,20 +2,20 @@ use std::{collections::HashMap, fs};
 
 use pathfinding::prelude::astar;
 
-type Valve = u16;
+type ValvePos = u16;
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 struct State {
-    pos: Valve,
-    ele_pos: Valve,
-    minute: i64,
-    on: Vec<(Valve, i64)>,
+    me: ValvePos,
+    ele: ValvePos,
+    min: i64,
+    on: Vec<(ValvePos, i64)>,
 }
 
 #[derive(Debug)]
 struct ValveInfo {
     flow_rate: i64,
-    neighbors: Vec<Valve>,
+    neighbors: Vec<(ValvePos, i64)>, // Valve and distance to valve
 }
 
 fn main() {
@@ -43,7 +43,7 @@ fn main() {
                 flow_rate: rate_str.parse().unwrap(),
                 neighbors: neighbor_str
                     .split(", ")
-                    .map(|v| parse_valve(v.as_bytes()))
+                    .map(|v| (parse_valve(v.as_bytes(), 0)))
                     .collect(),
             },
         );
@@ -51,11 +51,13 @@ fn main() {
 
     let total_flow_rate = valves.values().map(|v| v.flow_rate).sum();
 
+    let start_pos = parse_valve(&['A' as u8, 'A' as u8]);
+
     let start = State {
-        minute: 4,
+        min: 4,
         on: Vec::new(),
-        pos: parse_valve(&['A' as u8, 'A' as u8]),
-        ele_pos: parse_valve(&['A' as u8, 'A' as u8]),
+        me: ActorState::Free(start_pos),
+        ele: ActorState::Free(start_pos),
     };
 
     let mut highest_min = 0;
@@ -70,10 +72,10 @@ fn main() {
                 State {
                     ele_pos: state.ele_pos,
                     pos: state.pos,
-                    minute: 30,
+                    min: 30,
                     on: state.on.clone(),
                 },
-                cost * (30 - state.minute),
+                cost * (30 - state.min),
             ));
             return neighbors;
         }
@@ -82,7 +84,7 @@ fn main() {
         for neighbor in valves.get(&state.pos).unwrap().neighbors.iter() {
             neighbors.push((
                 State {
-                    minute: state.minute + 1,
+                    min: state.min + 1,
                     pos: *neighbor,
                     on: state.on.clone(),
                     ele_pos: state.ele_pos,
@@ -96,10 +98,10 @@ fn main() {
             && valves.get(&state.pos).unwrap().flow_rate != 0
         {
             let mut on = state.on.clone();
-            on.push((state.pos, state.minute + 1));
+            on.push((state.pos, state.min + 1));
             neighbors.push((
                 State {
-                    minute: state.minute + 1,
+                    min: state.min + 1,
                     pos: state.pos,
                     ele_pos: state.ele_pos,
                     on,
@@ -114,7 +116,7 @@ fn main() {
             for (s, c) in neighbors.iter_mut() {
                 out.push((
                     State {
-                        minute: s.minute,
+                        min: s.min,
                         pos: s.pos,
                         ele_pos: *neighbor,
                         on: s.on.clone(),
@@ -131,10 +133,10 @@ fn main() {
         {
             for (s, c) in neighbors.iter_mut() {
                 let mut on = s.on.clone();
-                on.push((s.ele_pos, s.minute + 1));
+                on.push((s.ele_pos, s.min + 1));
                 out.push((
                     State {
-                        minute: s.minute,
+                        min: s.min,
                         pos: s.pos,
                         ele_pos: s.ele_pos,
                         on: on.clone(),
@@ -144,9 +146,9 @@ fn main() {
             }
         }
 
-        if state.minute > highest_min {
-            dbg!(state.minute);
-            highest_min = state.minute;
+        if state.min > highest_min {
+            dbg!(state.min);
+            highest_min = state.min;
         }
 
         for s in out.iter_mut() {
@@ -158,7 +160,7 @@ fn main() {
 
     let heuristic = |state: &State| h(&valves, &state, total_flow_rate);
 
-    let success = |state: &State| state.minute == 30;
+    let success = |state: &State| state.min == 30;
 
     let (path, cost) = astar(&start, successors, heuristic, success).unwrap();
 
@@ -167,13 +169,13 @@ fn main() {
     dbg!(total_flow_rate * 26 - cost);
 }
 
-fn parse_valve(input: &[u8]) -> Valve {
-    (input[0] as Valve) * 256 + input[1] as Valve
+fn parse_valve(input: &[u8]) -> ValvePos {
+    (input[0] as ValvePos) * 256 + input[1] as ValvePos
 }
 
 fn cost(
-    valves: &HashMap<Valve, ValveInfo>,
-    on: &Vec<(Valve, i64)>,
+    valves: &HashMap<ValvePos, ValveInfo>,
+    on: &Vec<(ValvePos, i64)>,
     minutes: i64,
     total_flow_rate: i64,
 ) -> i64 {
@@ -185,8 +187,8 @@ fn cost(
     missed_flow * minutes
 }
 
-fn h(valves: &HashMap<Valve, ValveInfo>, state: &State, total_flow_rate: i64) -> i64 {
-    let mut closed_valves: Vec<Valve> = valves
+fn h(valves: &HashMap<ValvePos, ValveInfo>, state: &State, total_flow_rate: i64) -> i64 {
+    let mut closed_valves: Vec<ValvePos> = valves
         .keys()
         .filter(|k| valves.get(k).unwrap().flow_rate != 0 && !state.on.iter().any(|(v, _)| v == *k))
         .map(|k| k.clone())
@@ -199,9 +201,9 @@ fn h(valves: &HashMap<Valve, ValveInfo>, state: &State, total_flow_rate: i64) ->
         b_flow.cmp(&a_flow) // DESC
     });
 
-    let mut missed_flow = cost(valves, &state.on, 30 - state.minute, total_flow_rate);
+    let mut missed_flow = cost(valves, &state.on, 30 - state.min, total_flow_rate);
 
-    let mut min = state.minute + 1;
+    let mut min = state.min + 1;
     for (i, v) in closed_valves.iter().enumerate() {
         missed_flow -= valves.get(&v).unwrap().flow_rate * (30 - min);
 
